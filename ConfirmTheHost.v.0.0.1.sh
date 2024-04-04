@@ -9,13 +9,49 @@ password="*******"
 current_dir=$(pwd)
 directory="serverfile"
 TOKEN="*********"
-
-
-
+#硬碟容量告警戒線
+ThresholdMaxmessage=須注意空間請刪除不要的log
+ThresholdMinmessage=停止需求產生的log
+ThresholdMax=1000000
+ThresholdMin=500000
 
 #設定相關資料夾 & 確認主機網路狀態
-mkdir -p "$current_dir/$directory_log"
-echo -e "$(date) mkdir -p $current_dir/$directory_log" >> "$current_dir/$directory_log/Summary.log" 
+# section 2:description Establish 確認環境
+mkdir -p log
+df -h --output=source,size,used,avail,pcent,target | awk 'NR>1' | while read -r filesystem size used avail use_percent mounted_on; do
+    echo "{ \"Filesystem\": \"$filesystem\", \"Size\": \"$size\", \"Used\": \"$used\", \"Available\": \"$avail\", \"Use%\": \"$use_percent\", \"Mounted on\": \"$mounted_on\" }," >> DiskSpace.js
+done
+
+
+disk_space=$(df -k . | awk 'NR==2 { print $4 }')
+
+echo -e "$(date) $(pwd)硬碟空間剩下$disk_space " >> "$current_dir/log/Summary.log"
+
+if [ $disk_space -lt $ThresholdMax ]; then
+
+    message="磁碟空間不足：可用空間僅剩下$(($disk_space / 1024)) MB"
+    curl -X POST \
+        -H "Authorization: Bearer $TOKEN" \
+        -F "message=$ThresholdMaxmessage " \
+        https://notify-api.line.me/api/notify
+    echo -e "$(date) $(pwd)$message$disk_space " >> "$current_dir/log/Summary.log"
+
+elif [ $disk_space -lt $ThresholdMin ]; then
+
+    message="磁碟空間不足：很緊急請馬上刪除$(($disk_space / 1024)) MB"
+
+    curl -X POST \
+        -H "Authorization: Bearer $TOKEN" \
+        -F "message=$ThresholdMinmessage " \
+        https://notify-api.line.me/api/notify  
+
+    echo -e "$(date) $(pwd)$message$disk_space " >> "$current_dir/log/Summary.log"
+fi
+
+
+echo -e "$(date) Check available space $disk_space " >> "$current_dir/$directory/log/Summary.log"
+
+echo -e "$(date) 建立資料夾 $current_dir/$directory_log " >> "$current_dir/$directory/log/Summary.log"
 
 #Start checking host status
 echo -e "$(date) Start checking host status" >> "$current_dir/$directory_log/Summary.log" 
@@ -31,7 +67,7 @@ ping -c 4 8.8.8.8 >"$current_dir/$directory_log"/GoogleIp.log
 echo -e "$(date) Host status check completed" >> "$current_dir/$directory_log/Summary.log" 
 
 
-# section 2:description Establish environment
+# section 3:description Establish environment
 echo -e "$(date) Establish environment  -p $current_dir/$directory_log" >> "$current_dir/$directory_log/Summary.log" 
 
 echo -e "目前的工作目錄是: $current_dir/$directory"
@@ -76,8 +112,8 @@ else
 
 fi
 
- echo -e "$(date) Start confirming the Server ." >> "$current_dir/$directory/log/Summary.log" 
-##section 3:description 確認主機是否正常
+    echo -e "$(date) Start confirming the Server ." >> "$current_dir/$directory/log/Summary.log" 
+##section 4:description 確認主機是否正常
 for ip in 106 107 108 109; 
 do
     echo -e "ping 192.XXX.XXX.$ip" >> "$current_dir/$directory/log/Summary.log" 
@@ -102,6 +138,5 @@ do
         echo -e "$(date) Line Notify $MESSAGE MESSAGE " >> "$current_dir/$directory/log/Summary.log"  
     fi
 done
-echo -e "$(date) Confirm server end " >> "$current_dir/$directory/log/Summary.log" 
-echo -e "$(date) Confirm server end " >> "$current_dir/$directory_log/log/Summary.log" 
-
+    echo -e "$(date) Confirm server end " >> "$current_dir/$directory/log/Summary.log" 
+    echo -e "$(date) Confirm server end " >> "$current_dir/$directory_log/log/Summary.log" 
