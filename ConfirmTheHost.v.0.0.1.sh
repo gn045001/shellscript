@@ -6,8 +6,8 @@
 username="*********"
 remote_host="********"
 password="*******"
-$current_dir=$(pwd)
-$directory="serverfile"
+current_dir=$(pwd)
+directory="serverfile"
 TOKEN="*********"
 
 
