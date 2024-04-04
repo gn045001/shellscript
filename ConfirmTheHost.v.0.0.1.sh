@@ -1,17 +1,14 @@
 #!/bin/bash
 #section 1:description 程式變數
-#= version: 0.1, date: 20240331, Creater: jiasian.lin
+#= version: 0.0.1, date: 20240331, Creater: jiasian.lin
 # This is the first section of the script. Set variables
 #由於個資法我把以下*號
-username="*********"
-remote_host="********"
-password="*******"
 current_dir=$(pwd)
 directory="serverfile"
-TOKEN="*********"
+TOKEN="lbz6wRQ4qvbPQIPDQHTEiCMF2THiArWr8Utvjy0ZWG2"
 #硬碟容量告警戒線
-ThresholdMaxmessage=須注意空間請刪除不要的log
-ThresholdMinmessage=停止需求產生的log
+#ThresholdMaxmessage=須注意空間請刪除不要的log
+#ThresholdMinmessage=停止需求產生的log
 ThresholdMax=1000000
 ThresholdMin=500000
 
@@ -25,11 +22,19 @@ done
 
 disk_space=$(df -k . | awk 'NR==2 { print $4 }')
 
+message="可用空間僅剩下$(($disk_space / 1024)) MB"
+curl -X POST \
+        -H "Authorization: Bearer $TOKEN" \
+        -F "message=$message" \
+        https://notify-api.line.me/api/notify
+
+
+
 echo -e "$(date) $(pwd)硬碟空間剩下$disk_space " >> "$current_dir/log/Summary.log"
 
 if [ $disk_space -lt $ThresholdMax ]; then
 
-    message="磁碟空間不足：可用空間僅剩下$(($disk_space / 1024)) MB"
+    $ThresholdMaxmessage="磁碟空間不足：可用空間僅剩下$(($disk_space / 1024)) MB"
     curl -X POST \
         -H "Authorization: Bearer $TOKEN" \
         -F "message=$ThresholdMaxmessage " \
@@ -38,13 +43,13 @@ if [ $disk_space -lt $ThresholdMax ]; then
 
 elif [ $disk_space -lt $ThresholdMin ]; then
 
-    message="磁碟空間不足：很緊急請馬上刪除$(($disk_space / 1024)) MB"
+    ThresholdMinmessage="磁碟空間不足：很緊急請馬上刪除$(($disk_space / 1024)) MB"
 
     curl -X POST \
         -H "Authorization: Bearer $TOKEN" \
         -F "message=$ThresholdMinmessage " \
         https://notify-api.line.me/api/notify  
-
+        exit 1  # 磁碟空間不足，終止腳本
     echo -e "$(date) $(pwd)$message$disk_space " >> "$current_dir/log/Summary.log"
 fi
 
