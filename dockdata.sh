@@ -13,7 +13,7 @@ current_dir=$(pwd)
 directory="DackerData"
 
 #執行的mongoDB的IP之變數
-host=172.0.0.1
+host=localhost
 port=27017
 
 # 上傳資料至mongoDB的帳號密碼之變數
@@ -21,7 +21,7 @@ used=admin
 pass=gn045001
 
 # line 的相關變數
-TOKEN="lbz6wRQ4qvbPQIPDQHTEiCMF2THiArWr8Utvjy0ZWG2"
+#TOKEN="lbz6wRQ4qvbPQIPDQHTEiCMF2THiArWr8Utvjy0ZWG2"
 
 # 硬碟空間告警設定變數
 disk_space=1073741824
@@ -78,7 +78,7 @@ echo -e "$(date)確認硬碟空間狀態$disk_space" >> "$current_dir/log/Summar
 echo -e "$(date) $(pwd)硬碟空間剩下$disk_space" >> "$current_dir/log/Summary.log"
 if [ ! -d "$current_dir/$directory" ]; then
     echo -e "$(date) 尚未建立$current_dir/$directory" 需建立執行專案空間 >> "$current_dir/log/Summary.log"
-    mkdir -p "$current_dir/$directory"/{raw,processed,QC,analyzed,report,temp,log}
+    mkdir -p "$current_dir/$directory"/{raw,processed,QC,script,report,log}
     touch "$current_dir/$directory"/log/Summary.log
     ln -s $current_dir/mongoDBtool/mongodb-database-tools-rhel90-x86_64-100.9.4/bin $current_dir/$directory/tools
 
@@ -121,31 +121,33 @@ fi
     echo -e "$(date) 取得硬碟相關資訊" >> "$current_dir/$directory/log/Summary.log"   
         #取得 硬碟剩餘空間
         df -h --output=source,size,used,avail,pcent,target | awk 'NR>1' | while read -r filesystem size used avail use_percent mounted_on; 
-        do
-            echo "{ \"Filesystem\": \"$filesystem\", \"Size\": \"$size\", \"Used\": \"$used\", \"Available\": \"$avail\", \"Use%\": \"$use_percent\", \"Mounted on\": \"$mounted_on\" }" >> $current_dir/$directory/raw/"$now-DiskSpace.json"
-        done   
+            do
+                echo "{\"Filesystem\": \"$filesystem\", \"Size\": \"$size\", \"Used\": \"$used\", \"Available\": \"$avail\", \"Use%\": \"$use_percent\", \"Mounted on\": \"$mounted_on\" }" >> "$current_dir/$directory/raw/DiskSpace.json"
+            done
+ 
     echo -e "$(date)  取德硬碟相關資訊以寫入Summarylog中" >> "$current_dir/$directory/log/Summary.log"
 
         #加入至DiskSpace mongodb 中
         echo -e "$(date) 加入至DiskSpace mongodb 中" >> "$current_dir/$directory/log/Summary.log"
         cd $current_dir/$directory
 
-        tools/mongoimport --host "$host" --port $port --db admin --collection DiskSpace --file raw/"$now-DiskSpace.json" --username $used --password $pass
+        tools/mongoimport --host "$host" --port $port --db admin --collection DiskSpace --file "$current_dir/$directory/raw/DiskSpace.json" --username $used --password $pass
         
         
 #將Docker 資訊
 #確認docker 運行情況，並在需要時對容器進行管理
-        echo -e "$(date) 確認運行禽況是否正常">>"$$current_dir/$directory/log/Summary.log"
-        docker ps --format '{"timestamp": "'"$(date +'%Y-%m-%d %H:%M:%S')"'" ,"Container ID":"{{.ID}}", "Image":"{{.Image}}", "Created":"{{.RunningFor}}", "Status":"{{.Status}}"}' > $current_dir/$directory/raw/"$now-DockerState.json"
-        echo -e "$(date) 執行狀況記錄至Summerlog中">>"$$current_dir/$directory/log/Summary.log"
+        echo -e "$(date) 確認運行情況是否正常">>"$current_dir/$directory/log/Summary.log"
+        docker ps --format '{"timestamp": "'"$(date +'%Y-%m-%d %H:%M:%S')"'" ,"Container ID":"{{.ID}}", "Image":"{{.Image}}", "Created":"{{.RunningFor}}", "Status":"{{.Status}}"}' > "$current_dir/$directory/raw/DockerState.json"
+        echo -e "$(date) 執行狀況記錄至Summerlog中">>"$current_dir/$directory/log/Summary.log"
 
         echo -e "$(date)  建立Docker狀態資料中" >> "$current_dir/$directory/log/Summary.log"
         docker stats --no-stream --format '{"timestamp": "'"$(date +'%Y-%m-%d %H:%M:%S')"'" , "container_id": "{{.ID}}", "container_name": "{{.Name}}", "cpu_percentage": "{{.CPUPerc}}", "memory_usage": "{{.MemUsage}}", "memory_percentage": "{{.MemPerc}}", "network_io": "{{.NetIO}}", "block_io": "{{.BlockIO}}"}'>>   "$current_dir/$directory/raw/ComputerStart.json"
         echo -e "$(date) 建立Docker狀態已完成資料中" >> "$current_dir/$directory/log/Summary.log"
 
-        cd $directory
+        cd $current_dir/$directory/
         #加入至DockerState  mongodb 中
-        tools/mongoimport --host "$host" --port $port --db admin --collection DockerState --file "$current_dir/raw/ComputerStart.json" --username $used --password $pass
+        tools/mongoimport --host "$host" --port $port --db admin --collection DockerState --file "$current_dir/$directory/raw/DockerState.json" --username $used --password $pass
 
+        tools/mongoimport --host "$host" --port $port --db admin --collection DockerState --file "$current_dir/$directory/raw/ComputerStart.json" --username $used --password $pass
         echo -e "$(date) Start confirming the Server ." >> "$current_dir/$directory/log/Summary.log" 
     

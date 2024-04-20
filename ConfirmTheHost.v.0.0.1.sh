@@ -5,7 +5,7 @@
 #由於個資法我把以下*號
 current_dir=$(pwd)
 directory="serverfile"
-TOKEN="lbz6wRQ4qvbPQIPDQHTEiCMF2THiArWr8Utvjy0ZWG2"
+#TOKEN="lbz6wRQ4qvbPQIPDQHTEiCMF2THiArWr8Utvjy0ZWG2"
 #硬碟容量告警戒線
 #ThresholdMaxmessage=須注意空間請刪除不要的log
 #ThresholdMinmessage=停止需求產生的log
