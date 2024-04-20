@@ -2,14 +2,14 @@
 
 #= version: 0.1, date: 20240405, Creater: jiasian.lin
 #= version: 0.2, date: 20240406, Creater: jiasian.lin
-#= version: 0.3, date: 20240409, Creater: jiasian.lin
+#= version: 0.3, date: 20240420, Creater: jiasian.lin
 #section 1:description 程式變數
 # 日期變數
 day=$(date +'%Y%-m%%-d')
 now=$(date +'%Y%m%d-%H%M')
 
 #執行環境的資料夾之環境變數
-current_dir=$(pwd)
+current_dir=/home/$USER
 directory="DackerData"
 
 #執行的mongoDB的IP之變數
@@ -141,13 +141,21 @@ fi
         echo -e "$(date) 執行狀況記錄至Summerlog中">>"$current_dir/$directory/log/Summary.log"
 
         echo -e "$(date)  建立Docker狀態資料中" >> "$current_dir/$directory/log/Summary.log"
-        docker stats --no-stream --format '{"timestamp": "'"$(date +'%Y-%m-%d %H:%M:%S')"'" , "container_id": "{{.ID}}", "container_name": "{{.Name}}", "cpu_percentage": "{{.CPUPerc}}", "memory_usage": "{{.MemUsage}}", "memory_percentage": "{{.MemPerc}}", "network_io": "{{.NetIO}}", "block_io": "{{.BlockIO}}"}'>>   "$current_dir/$directory/raw/ComputerStart.json"
+        docker stats --no-stream --format '{"timestamp": "'"$(date +'%Y-%m-%d %H:%M:%S')"'" , "container_id": "{{.ID}}", "container_name": "{{.Name}}", "cpu_percentage": "{{.CPUPerc}}", "memory_usage": "{{.MemUsage}}", "memory_percentage": "{{.MemPerc}}", "network_io": "{{.NetIO}}", "block_io": "{{.BlockIO}}"}'>>  "$current_dir/$directory/raw/ComputerStart.json"
         echo -e "$(date) 建立Docker狀態已完成資料中" >> "$current_dir/$directory/log/Summary.log"
 
-        cd $current_dir/$directory/
-        #加入至DockerState  mongodb 中
-        tools/mongoimport --host "$host" --port $port --db admin --collection DockerState --file "$current_dir/$directory/raw/DockerState.json" --username $used --password $pass
 
-        tools/mongoimport --host "$host" --port $port --db admin --collection DockerState --file "$current_dir/$directory/raw/ComputerStart.json" --username $used --password $pass
-        echo -e "$(date) Start confirming the Server ." >> "$current_dir/$directory/log/Summary.log" 
+        #加入至DockerState  mongodb 中
+        echo -e "$(date)  建立DockerState到資料庫" >> "$current_dir/$directory/log/Summary.log"
+        tools/mongoimport --host "$host" --port $port --db admin --collection DockerState --file "$current_dir/$directory/raw/DockerState.json" --username $used --password $pass
+        echo -e "$(date)   建立DockerState到資料庫完畢" >> "$current_dir/$directory/log/Summary.log"
+
+        echo -e "$(date)  建立DiskSpace到資料庫" >> "$current_dir/$directory/log/Summary.log"     
+        tools/mongoimport --host "$host" --port $port --db admin --collection DiskSpace --file "$current_dir/$directory/raw/DiskSpace.json" --username $used --password $pass
+        echo -e "$(date)  建立DiskSpace到資料庫完畢 ." >> "$current_dir/$directory/log/Summary.log"
+
+
+        echo -e "$(date)  建立ComputerStart到資料庫" >> "$current_dir/$directory/log/Summary.log"     
+        tools/mongoimport --host "$host" --port $port --db admin --collection ComputerStart --file "$current_dir/$directory/raw/ComputerStart.json" --username $used --password $pass
+        echo -e "$(date)  建立ComputerStart到資料庫完畢 ." >> "$current_dir/$directory/log/Summary.log" 
     

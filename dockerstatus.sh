@@ -10,7 +10,7 @@ cp  $HOMEDIR/DackerData/raw/ComputerStart.json $HOMEDIR/dockerstats/raw/$hour-Co
 echo "$(date) $HOMEDIR/$directory/raw/ComputerStart.json 複製資料至dockerstats/raw 建立完畢${hour}-ComputerStart.json." >> "$HOMEDIR/$directory/log/Summary.log" 
 
 echo "$(date) $HOMEDIR/$directory/raw/ComputerStart.json 複製資料至diskrepoet/raw 要建立${hour}-ComputerStart.json." >> "$HOMEDIR/$directory/log/Summary.log" 
-cp  $HOMEDIR/DackerData/raw/ComputerStart.json $HOMEDIR/diskrepoet/raw/$hour-ComputerStart.json
+cp  $HOMEDIR/DackerData/raw/DiskSpace.json $HOMEDIR/diskreport/raw/$hour-DiskSpace.json
 echo "$(date) $HOMEDIR/$directory/raw/ComputerStart.json 複製資料至diskrepoet/raw 建立完畢${hour}-ComputerStart.json." >> "$HOMEDIR/$directory/log/Summary.log" 
 
 echo "$(date) $HOMEDIR/$directory/raw/ComputerStart.json 複製資料至report/raw 要建立${hour}-ComputerStart.json." >> "$HOMEDIR/$directory/log/Summary.log" 
@@ -29,3 +29,7 @@ echo "$(date) $HOMEDIR/$directory/raw/ComputerStart.json 複製資料至InputCPU
 echo -e "$(date) $HOMEDIR/$directory/raw/ComputerStart.json 刪除資料" >> "$HOMEDIR/$directory/log/Summary.log" 
 rm -rf  $HOMEDIR/DackerData/raw/ComputerStart.json
 echo -e "$(date) $HOMEDIR/$directory/raw/ComputerStart.json 資料刪除完畢" >> "$HOMEDIR/$directory/log/Summary.log" 
+
+echo -e "$(date) $HOMEDIR/$directory/raw/DiskSpace.json 刪除資料" >> "$HOMEDIR/$directory/log/Summary.log" 
+rm -rf  $HOMEDIR/DackerData/raw/DiskSpace.json
+echo -e "$(date) $HOMEDIR/$directory/raw/DiskSpace.json 資料刪除完畢" >> "$HOMEDIR/$directory/log/Summary.log" 
